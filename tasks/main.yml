@@ -1,0 +1,18 @@
+---
+##
+# Start adding cron jobs
+# #
+
+- name: Reset crontab to start fresh
+  action: command crontab -r
+
+# Setup site alive checks to run every five minutes
+- cron: name="Site alive check [{{item.url}}]" minute="*/5"
+        job="curl -isk {{item.url}} | head -1 | grep 200; if [ $? -ne 0 ]; then echo 'Site Down, check {{item.url}} now.' | mail -s 'Site Down {{item.url}}' support@cnstechgroup.com ; fi  > /dev/null"
+  with_items: websites
+
+# Remove site alive checks for disabled websites
+- cron: name="Site alive check [{{item.url}}]" minute="*/5"
+        job="curl -isk {{item.url}} | head -1 | grep 200; if [ $? -ne 0 ]; then echo 'Site Down, check {{item.url}} now.' | mail -s 'Site Down {{item.url}}' support@cnstechgroup.com ; fi  > /dev/null"
+        state=absent
+  with_items: disabled_websites
